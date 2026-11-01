@@ -23,7 +23,7 @@ jobs:
       - name: Install Ionic & Capacitor
         run: |
           npm init -y
-          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/ios@7
+          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/ios@7 @capacitor/geolocation@7
           npx cap init WeatherApp com.weather.app --web-dir www
           npx cap add ios || true
 
@@ -37,6 +37,18 @@ jobs:
         run: |
           npx cap copy ios
           npx cap update ios
+
+      - name: Add Location Permission
+        run: |
+          cd ios/App
+          python3 - <<'PY'
+          p = 'App/App/Info.plist'
+          s = open(p).read().replace('\r\n', '\n')
+          key = '<key>NSLocationWhenInUseUsageDescription</key>\n<string>需要定位权限以显示您所在位置的天气</string>\n'
+          if 'NSLocationWhenInUseUsageDescription' not in s:
+              s = s.replace('</dict>\n</plist>', key + '</dict>\n</plist>', 1)
+              open(p, 'w').write(s)
+          PY
 
       - name: Build Unsigned App
         run: |
