@@ -23,7 +23,7 @@ jobs:
       - name: Install Ionic & Capacitor
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/ios
+          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/ios@7
           npx cap init WeatherApp com.weather.app --web-dir www
           npx cap add ios || true
 
@@ -41,7 +41,7 @@ jobs:
       - name: Build Unsigned App
         run: |
           cd ios/App
-          xcodebuild build -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -derivedDataPath build
+          xcodebuild build -workspace App.xcworkspace -scheme App -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" -derivedDataPath build
 
       - name: Package to IPA
         run: |
