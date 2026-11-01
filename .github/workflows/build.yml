@@ -25,13 +25,13 @@ jobs:
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/ios
           npx cap init WeatherApp com.weather.app --web-dir www
-          npx cap add ios
+          npx cap add ios || true
 
       - name: Fix iOS Deployment Target
         run: |
           cd ios/App
-          sed -i '' 's/platform :ios, .*/platform :ios, "15.0"/' Podfile
-          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9]*\.[0-9]*;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' App.xcodeproj/project.pbxproj
+          sed -i '' 's/platform :ios, .*/platform :ios, "16.0"/' Podfile
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9]*\.[0-9]*;/IPHONEOS_DEPLOYMENT_TARGET = 16.0;/g' App.xcodeproj/project.pbxproj
 
       - name: Build Web App & Sync
         run: |
