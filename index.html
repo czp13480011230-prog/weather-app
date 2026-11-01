@@ -201,18 +201,37 @@
     }
   }
 
-  function useGeolocation(){
+  // 默认城市：想换默认城市只改这里三行即可
+  const DEFAULT_CITY = { name: "北京", lat: 39.9042, lon: 116.4074, sub: "默认城市" };
+
+  async function getPosition(){
+    // 优先用 Capacitor 原生定位（iOS 上能正确弹出系统权限框）
+    try {
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation){
+        const p = await window.Capacitor.Plugins.Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+        return { lat: p.coords.latitude, lon: p.coords.longitude };
+      }
+    } catch(e){ console.warn("Capacitor 定位失败，回退浏览器定位", e); }
+    // 回退：浏览器原生定位
+    return await new Promise(resolve => {
+      if (!navigator.geolocation){ resolve(null); return; }
+      navigator.geolocation.getCurrentPosition(
+        p => resolve({ lat: p.coords.latitude, lon: p.coords.longitude }),
+        () => resolve(null),
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  }
+
+  async function autoLocate(){
     document.getElementById("status").textContent = "正在定位…";
-    if (!navigator.geolocation){
-      document.getElementById("status").textContent = "设备不支持定位，使用默认城市";
-      loadWeather(39.9042, 116.4074, "北京", "默认城市");
-      return;
+    const pos = await getPosition();
+    if (pos){
+      loadWeather(pos.lat, pos.lon, "当前位置", "GPS 定位");
+    } else {
+      document.getElementById("status").textContent = "定位不可用，已使用默认城市";
+      loadWeather(DEFAULT_CITY.lat, DEFAULT_CITY.lon, DEFAULT_CITY.name, DEFAULT_CITY.sub);
     }
-    navigator.geolocation.getCurrentPosition(
-      p => loadWeather(p.coords.latitude, p.coords.longitude, "当前位置", "GPS 定位"),
-      () => { document.getElementById("status").textContent = "定位被拒绝，使用默认城市"; loadWeather(39.9042, 116.4074, "北京", "默认城市"); },
-      { enableHighAccuracy: false, timeout: 8000 }
-    );
   }
 
   document.getElementById("searchBtn").onclick = () => {
@@ -222,10 +241,10 @@
   document.getElementById("cityInput").addEventListener("keydown", e => {
     if (e.key === "Enter") document.getElementById("searchBtn").click();
   });
-  document.getElementById("locBtn").onclick = useGeolocation;
+  document.getElementById("locBtn").onclick = autoLocate;
 
-  // 默认启动：先尝试定位，失败则用北京
-  useGeolocation();
+  // 启动：先自动定位，失败则回退默认城市
+  autoLocate();
 </script>
 </body>
 </html>
