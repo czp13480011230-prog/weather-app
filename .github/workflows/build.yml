@@ -42,7 +42,7 @@ jobs:
         run: |
           cd ios/App
           python3 - <<'PY'
-          p = 'App/App/Info.plist'
+          p = 'App/Info.plist'
           s = open(p).read().replace('\r\n', '\n')
           key = '<key>NSLocationWhenInUseUsageDescription</key>\n<string>需要定位权限以显示您所在位置的天气</string>\n'
           if 'NSLocationWhenInUseUsageDescription' not in s:
