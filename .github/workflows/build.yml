@@ -1,0 +1,45 @@
+name: Build Unsigned IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-15
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Ionic & Capacitor
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/ios
+          npx cap init WeatherApp com.weather.app --web-dir .
+          npx cap add ios
+
+      - name: Build Web App & Sync
+        run: |
+          npx cap copy ios
+          npx cap update ios
+
+      - name: Build Unsigned App
+        run: |
+          cd ios/App
+          xcodebuild build -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -derivedDataPath build
+
+      - name: Package to IPA
+        run: |
+          mkdir -p Payload
+          cp -r ios/App/build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -r WeatherApp-unsigned.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WeatherApp-IPA
+          path: WeatherApp-unsigned.ipa
